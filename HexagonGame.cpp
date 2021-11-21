@@ -8,7 +8,7 @@ int main()
 {
     Board gam;
     gam.draw();
-    gam.getBlueTilesCounter();
+    std::cout << "\n" << gam.getBlueTilesCounter();
 }
 
 // Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
