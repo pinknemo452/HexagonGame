@@ -30,6 +30,6 @@ public:
 	void decRedTilesCounterBy(int sub);
 	void incFreeTilesCounterBy(int add);
 	void decFreeTilesCounterBy(int sub);
-
+	Board(const Board& board);
 };
 

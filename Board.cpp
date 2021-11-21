@@ -61,6 +61,13 @@ void Board::decFreeTilesCounterBy(int sub)
 	redTilesCounter_ -= sub;
 }
 
+Board::Board(const Board& board):board_(board.board_)
+{
+	this->blueTilesCounter_ = board.blueTilesCounter_;
+	this->redTilesCounter_ = board.redTilesCounter_;
+	this->freeTilesCounter_ = board.freeTilesCounter_;
+}
+
 int Board::getBlueTilesCounter() const
 {
 	return blueTilesCounter_;
