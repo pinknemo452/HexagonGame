@@ -67,8 +67,8 @@ int Controller::runMinMax(int y,int x,int recursive_level,int alpha,int beta)
     int Min = -100;
     if (recursive_level >= 1)
         return getStaticEvaluation();
-    for(int i = -2;i < 3;i++)
-        for (int j = -2; j < 3; j++) {
+    for(int i = 0;i < 9;i++)
+        for (int j = 0; j < 9; j++) {
             if (i == 0 && j == 0)
                 continue;
             if (canMove(y, x, y + i, x + j)) {
@@ -194,8 +194,34 @@ void Controller::makeMove(int from_y, int from_x, int to_y, int to_x)
 
 void Controller::Game()
 {
+    board_->draw();
     while (board_->getFreeTilesCounter() != 0)
     {
-
+        auto input = board_->getPlayerInput();
+        auto from = input.first;
+        auto to = input.second;
+        int from_y = from.first;
+        int from_x = from.second;
+        int to_y = to.first;
+        int to_x = to.second;
+        if (canMove(from_y, from_x, to_y, to_x)) {
+            temporaryMovement(from_y, from_x, to_y, to_x, *board_);
+        }
+        else
+        {
+            continue;
+        }
+        runMinMax(0, 0, 0, 0, 0);
+        board_->draw();
     }
+}
+
+void Controller::setBoard(Board* board)
+{
+    board_ = board;
+    temp = new Board(*board);
+}
+
+Controller::Controller()
+{
 }

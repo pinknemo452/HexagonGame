@@ -1,8 +1,9 @@
 #pragma once
 #include "Point.h"
-#include "Model.h"
+#include "IController.h"
 #include <vector>
 #include <iostream>
+
 
 class Board
 {
@@ -15,9 +16,11 @@ class Board
 	const int blackTile = 1;
 	const int freeTile = 0;
 	const int unreachableTile = -1;
-	Controller* model_;
+	IController* model_;
+	Board() = default;
 public:
-	Board();
+	Board(IController* model);
+	void start();
 	void draw() const;
 	int getTile(int y, int x) const;
 	int getBlueTilesCounter() const;
@@ -30,6 +33,7 @@ public:
 	void decRedTilesCounterBy(int sub);
 	void incFreeTilesCounterBy(int add);
 	void decFreeTilesCounterBy(int sub);
+	std::pair<std::pair<int, int>, std::pair<int, int>> getPlayerInput();
 	Board(const Board& board);
 };
 

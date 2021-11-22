@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-Board::Board() :board_{
+Board::Board(IController* model) :board_{
 	{-1,-1,-1,-1, 2,-1,-1,-1,-1},
 	{-1,-1, 0, 0, 0, 0, 0,-1,-1},
 	{ 3, 0, 0, 0, 0, 0, 0, 0, 3},
@@ -13,9 +13,17 @@ Board::Board() :board_{
 	{-1, 0, 0, 0, 0, 0, 0, 0,-1},
 	{-1,-1,-1, 0, 3, 0,-1,-1,-1}} 
 {
+	model_ = model;
+	model_->setBoard(this);
 	redTilesCounter_ = 3;
 	blueTilesCounter_ = 3;
 	freeTilesCounter_ = 52;
+}
+
+
+void Board::start()
+{
+	model_->Game();
 }
 
 void Board::draw() const
@@ -59,6 +67,15 @@ void Board::changeTile(int y, int x, int value)
 void Board::decFreeTilesCounterBy(int sub)
 {
 	redTilesCounter_ -= sub;
+}
+
+std::pair<std::pair<int,int>, std::pair<int,int>> Board::getPlayerInput()
+{
+	std::cout << "Enter you turn(from y x to y x): ";
+	int i, j;
+	int y, x;
+	std::cin >> i >> j >> y >> x;
+	return std::make_pair(std::make_pair(i,j),std::make_pair(y,x));
 }
 
 Board::Board(const Board& board):board_(board.board_)

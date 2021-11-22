@@ -1,13 +1,14 @@
 #pragma once
-#include "Board.h"
 #include <iostream>
 #include <vector>
+#include "Board.h"
 
-class Controller
+class Controller: public IController
 {
 	Board* board_;
 	Board* temp;
 	const int depth_ = 1;
+
 public:
 	bool canMove(int from_y, int from_x,int to_y,int to_x);
 	bool isNeighbor(int y, int x, int neighbor_y, int neighbor_x) const;
@@ -15,7 +16,9 @@ public:
 	int getStaticEvaluation();
 	void temporaryMovement(int from_y,int from_x,int to_y,int to_x, Board& board);
 	void makeMove(int from_y, int from_x, int to_y, int to_x);
-	void Game();
+	void Game() override;
+	void setBoard(Board* board) override;
+	Controller();
 	Controller( Board* board);
 };
 

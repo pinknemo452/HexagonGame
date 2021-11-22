@@ -3,11 +3,14 @@
 
 #include <iostream>
 #include "Board.h"
+#include "Model.h"
+
 
 int main()
 {
-    Board gam;
-    gam.draw();
+    Controller c;
+    Board gam(&c);
+    gam.start();
     std::cout << "\n" << gam.getBlueTilesCounter();
 }
 
