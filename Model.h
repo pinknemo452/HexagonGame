@@ -10,11 +10,11 @@ class Controller: public IController
 	const int depth_ = 1;
 
 public:
-	bool canMove(int from_y, int from_x,int to_y,int to_x);
+	bool canMove(int from_y, int from_x,int to_y,int to_x, Board* board,int player);
 	bool isNeighbor(int y, int x, int neighbor_y, int neighbor_x) const;
 	int runMinMax(int y,int x,int recursive_level,int alpha,int beta);
-	int getStaticEvaluation();
-	void temporaryMovement(int from_y,int from_x,int to_y,int to_x, Board& board);
+	int getStaticEvaluation(Board* board);
+	void temporaryMovement(int from_y,int from_x,int to_y,int to_x, Board& board, int player);
 	void makeMove(int from_y, int from_x, int to_y, int to_x);
 	void Game() override;
 	void setBoard(Board* board) override;

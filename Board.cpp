@@ -14,10 +14,10 @@ Board::Board(IController* model) :board_{
 	{-1,-1,-1, 0, 3, 0,-1,-1,-1}} 
 {
 	model_ = model;
-	model_->setBoard(this);
 	redTilesCounter_ = 3;
 	blueTilesCounter_ = 3;
 	freeTilesCounter_ = 52;
+	model_->setBoard(this);
 }
 
 
@@ -61,12 +61,27 @@ void Board::decRedTilesCounterBy(int sub)
 
 void Board::changeTile(int y, int x, int value)
 {
+	if (board_[y][x] == 2)
+		this->decBlueTilesCounterBy(1);
+	if (board_[y][x] == 3)
+		this->decRedTilesCounterBy(1);
+	if (board_[y][x] == 0)
+		this->decFreeTilesCounterBy(1);
+
+	if (value == 2)
+		this->incBlueTilesCounterBy(1);
+	if (value == 3)
+		this->incRedTilesCounterBy(1);
+	if (value == 0)
+		this->incFreeTilesCounterBy(1);
+
 	board_[y][x] = value;
+
 }
 
 void Board::decFreeTilesCounterBy(int sub)
 {
-	redTilesCounter_ -= sub;
+	freeTilesCounter_ -= sub;
 }
 
 std::pair<std::pair<int,int>, std::pair<int,int>> Board::getPlayerInput()
@@ -78,11 +93,8 @@ std::pair<std::pair<int,int>, std::pair<int,int>> Board::getPlayerInput()
 	return std::make_pair(std::make_pair(i,j),std::make_pair(y,x));
 }
 
-Board::Board(const Board& board):board_(board.board_)
+Board::Board(const Board& board):board_(board.board_),blueTilesCounter_(board.blueTilesCounter_),redTilesCounter_(board.redTilesCounter_),freeTilesCounter_(board.freeTilesCounter_)
 {
-	this->blueTilesCounter_ = board.blueTilesCounter_;
-	this->redTilesCounter_ = board.redTilesCounter_;
-	this->freeTilesCounter_ = board.freeTilesCounter_;
 }
 
 int Board::getBlueTilesCounter() const
