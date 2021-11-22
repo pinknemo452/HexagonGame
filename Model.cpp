@@ -60,35 +60,43 @@ bool Controller::isNeighbor(int y, int x, int neighbor_y, int neighbor_x) const
     return false;
 }
 
-int Controller::runMinMax(int y,int x,int recursive_level,int alpha,int beta)
+int Controller::runMinMax(int recursive_level,int alpha,int beta)
 {
     int evaluation = 100;
     std::pair<int, int> bestMove(100,100);
+    std::pair<int, int> bestElement(100, 100);
     int Min = -100;
     if (recursive_level >= 1)
         return getStaticEvaluation(temp);
-    for(int i = 0;i < 9;i++)
-        for (int j = 0; j < 9; j++) {
-            if (i == 0 && j == 0 && y + i > 8 && x + j > 8 && y + i >= 0 && x + j >= 0)
-                continue;
-            if (canMove(y, x, y + i, x + j,temp,3)) {
-                Board* temp_clone = new Board(*temp);
-                temporaryMovement(y, x, y + i, x + j, *temp,3);
-                evaluation = runMinMax(y + i, x + j, recursive_level + 1, 0, 0);
-                delete temp;
-                temp = new Board(*temp_clone);
-                delete temp_clone;
-                if (evaluation > Min) {
-                    Min = evaluation;
-                    bestMove = std::make_pair(y + i,x + j);
+    for (int k = 0;k < machineTiles.size(); ++k) {
+        for (int i = -2; i < 3; i++)
+            for (int j = -2; j < 3; j++) {
+                if (i == 0 && j == 0 || (machineTiles[k].first + i > 8 || machineTiles[k].second + j > 8) || (machineTiles[k].first + i < 0 || machineTiles[k].second + j < 0))
+                    continue;
+                if (canMove(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, temp, 3)) {
+                    Board* temp_clone = new Board(*temp);
+                    temporaryMovement(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, *temp, 3);
+                    evaluation = runMinMax(recursive_level + 1, 0, 0);
+                    
+                    if (evaluation > Min) {
+                        Min = evaluation;
+                        bestMove = std::make_pair(machineTiles[k].first + i, machineTiles[k].second + j);
+                        bestElement = std::make_pair(machineTiles[k].first,machineTiles[k].second);
+                    }
+                    delete temp;
+                    temp = new Board(*temp_clone);
+                    delete temp_clone;
                 }
-            }
 
-        }
+            }
+    }
     if (bestMove == std::make_pair(100, 100))
         return getStaticEvaluation(temp);
-    if (recursive_level == 0)
-        temporaryMovement(y,x,bestMove.first,bestMove.second,*board_,3);
+    if (recursive_level == 0) {
+        machineTiles.push_back(bestMove);
+        temporaryMovement(bestElement.first, bestElement.second, bestMove.first, bestMove.second, *board_, 3);
+        std::cout << bestElement.first << " " << bestElement.second;
+    }
     return Min;
 }
 
@@ -136,6 +144,12 @@ void Controller::temporaryMovement(int from_y, int from_x, int to_y, int to_x, B
                             else
                             {
                                 board.changeTile(to_y + i, to_x + j, player);
+                                if (player == 3) {
+                                    machineTiles.push_back(std::make_pair(to_y + i, to_x + j));
+                                }
+                                else {
+                                    std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y + i, to_x + j)); 
+                                }
                             }
                         }
                         else if (to_x % 2 == 1) {
@@ -144,6 +158,12 @@ void Controller::temporaryMovement(int from_y, int from_x, int to_y, int to_x, B
                             else
                             {
                                 board.changeTile(to_y + i, to_x + j, player);
+                                if (player == 3) {
+                                    machineTiles.push_back(std::make_pair(to_y + i, to_x + j));
+                                }
+                                else {
+                                    std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y + i, to_x + j));
+                                }
                             }
                         }
                 }
@@ -156,8 +176,15 @@ void Controller::temporaryMovement(int from_y, int from_x, int to_y, int to_x, B
         for (int i = -2; i < 3; i++)
             for (int j = -2; j < 3; j++)
                 if (i != 0 && j != 0 && to_y + i < 9 && to_x +j < 9 && to_y + i >= 0 && to_x + j >= 0)
-                    if (board.getTile(to_y + i,to_x + j) == antiplayer && isNeighbor(to_y, to_x, to_y + i, to_x + j))
-                        board.changeTile(to_y + i, to_x + j,player);
+                    if (board.getTile(to_y + i, to_x + j) == antiplayer && isNeighbor(to_y, to_x, to_y + i, to_x + j)) {
+                        board.changeTile(to_y + i, to_x + j, player);
+                        if (player == 3) {
+                            machineTiles.push_back(std::make_pair(to_y + i, to_x + j));
+                        }
+                        else {
+                            std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y + i, to_x + j));
+                        }
+                    }
     }
 }
 
@@ -197,6 +224,7 @@ void Controller::Game()
     while (board_->getFreeTilesCounter() != 0)
     {
         auto input = board_->getPlayerInput();
+        //auto input = std::make_pair(std::make_pair(6, 8), std::make_pair(5, 7));
         auto from = input.first;
         auto to = input.second;
         int from_y = from.first;
@@ -210,9 +238,10 @@ void Controller::Game()
         {
             continue;
         }
+        board_->draw();
         delete temp;
         temp = new Board(*board_);
-        runMinMax(2, 0, 0, 0, 0);
+        runMinMax(0, 0, 0);
         board_->draw();
     }
 }
@@ -221,6 +250,9 @@ void Controller::setBoard(Board* board)
 {
     board_ = board;
     temp = new Board(*board_);
+    machineTiles.push_back(std::make_pair(2, 0));
+    machineTiles.push_back(std::make_pair(2, 8));
+    machineTiles.push_back(std::make_pair(8, 4));
 }
 
 Controller::Controller()
