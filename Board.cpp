@@ -28,6 +28,7 @@ void Board::start()
 
 void Board::draw() const
 {
+	std::cout << "\n";
 	std::cout << "                 ___         " << "\n";
 	std::cout << "             ___/ "<<board_[0][4] <<" \\___       " << "\n";
 	std::cout << "         ___/ "<<board_[1][3] <<" \\___/ "<<board_[1][5] <<" \\___     " << "\n";
@@ -82,6 +83,23 @@ void Board::changeTile(int y, int x, int value)
 void Board::decFreeTilesCounterBy(int sub)
 {
 	freeTilesCounter_ -= sub;
+}
+
+int Board::checkWin()
+{
+	if (getBlueTilesCounter() == 0) {
+		std::cout << "\nRed win\n";
+		return 3;
+	}
+	if (getRedTilesCounter() == 0) {
+		std::cout << "\nBlue win\n";
+		return 2;
+	}
+	if (getFreeTilesCounter() == 0) {
+		std::cout << "\nDraw\n";
+		return 1;
+	}
+	return 0;
 }
 
 std::pair<std::pair<int,int>, std::pair<int,int>> Board::getPlayerInput()

@@ -1,21 +1,51 @@
 #include "Model.h"
+#include <cmath>
 Controller::Controller(Board* board) {
     board_ = board;
     temp = new Board(*board_);
 }
 
+bool Controller::is1RingNeighbor(int y, int x, int neighbor_y, int neighbor_x)
+{
+    if (y == neighbor_y && x == neighbor_x)
+        return false;
+    if (std::abs(y) - std::abs(neighbor_y) >= 2 || std::abs(x) - std::abs(neighbor_x) >= 2)
+        return false;
+    if (x % 2 == 0) {
+        if (neighbor_y - y == 0 && neighbor_x - x == -1 ||
+            neighbor_y - y == -1 && neighbor_x - x == 0 ||
+            neighbor_y - y == 0 && neighbor_x - x == 1 ||
+            neighbor_y - y == 1 && neighbor_x - x == 1 ||
+            neighbor_y - y == 1 && neighbor_x - x == 0 ||
+            neighbor_y - y == 1 && neighbor_x - x == -1) {
+            return true;
+        }
+    }
+    else if (x % 2 == 1) {
+        if (neighbor_y - y == -1 && neighbor_x - x == -1 ||
+            neighbor_y - y == -1 && neighbor_x - x == 0 ||
+            neighbor_y - y == -1 && neighbor_x - x == 1 ||
+            neighbor_y - y == 0 && neighbor_x - x == 1 ||
+            neighbor_y - y == 1 && neighbor_x - x == 0 ||
+            neighbor_y - y == 0 && neighbor_x - x == -1) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Controller::canMove(int from_y, int from_x, int to_y, int to_x,Board* board , int player)
 {
-    return isNeighbor(from_y, from_x, to_y, to_x) && board->getTile(to_y, to_x) == 0 && board->getTile(from_y,from_x) == player;
+    return isNeighbor(from_y, from_x, to_y, to_x) && board->getTile(to_y, to_x) == 0 && board->getTile(from_y, from_x) == player &&( from_y != to_y || from_x != to_x);
 }
 
 bool Controller::isNeighbor(int y, int x, int neighbor_y, int neighbor_x) const
 {
     if (y == neighbor_y && x == neighbor_x)
         return false;
-    if (y - neighbor_y >= 3 || x - neighbor_x >= 3)
+    if (std::abs(y) - std::abs(neighbor_y) >= 3 || std::abs(x) - std::abs(neighbor_x) >= 3)
         return false;
-       
+    
     if (x % 2 == 0)
         if (y - 1 == neighbor_y && x == neighbor_x ||
             y - 2 == neighbor_y && x == neighbor_x ||
@@ -95,7 +125,7 @@ int Controller::runMinMax(int recursive_level,int alpha,int beta)
     if (recursive_level == 0) {
         machineTiles.push_back(bestMove);
         temporaryMovement(bestElement.first, bestElement.second, bestMove.first, bestMove.second, *board_, 3);
-        std::cout << bestElement.first << " " << bestElement.second;
+        std::cout << bestMove.first << " " << bestMove.second;
     }
     return Min;
 }
@@ -109,62 +139,23 @@ void Controller::temporaryMovement(int from_y, int from_x, int to_y, int to_x, B
 {
     int antiplayer = player == 3 ? 2 : 3;
     int movement_type = 2;
-    if (from_x % 2 == 0) {
-        if (to_y - from_y == 0 && to_x - from_x == -1 ||
-            to_y - from_y == -1 && to_x - from_x == 0 ||
-            to_y - from_y == 0 && to_x - from_x == 1 ||
-            to_y - from_y == 1 && to_x - from_x == 1 ||
-            to_y - from_y == 1 && to_x - from_x == 0 ||
-            to_y - from_y == 1 && to_x - from_x == -1) {
-            movement_type = 1;
-
-        }
-    }
-    else if (from_x % 2 == 1) {
-        if (to_y - from_y == -1 && to_x - from_x == -1 ||
-            to_y - from_y == -1 && to_x - from_x == 0 ||
-            to_y - from_y == -1 && to_x - from_x == 1 ||
-            to_y - from_y == 0 && to_x - from_x == 1 ||
-            to_y - from_y == 1 && to_x - from_x == 0 ||
-            to_y - from_y == 0 && to_x - from_x == -1) {
-            movement_type = 1;
-        }
-    }
+    if (is1RingNeighbor(from_y, from_x, to_y, to_x))
+        movement_type = 1;
     if (movement_type == 1) {
         board.changeTile(to_y, to_x, player);
         for (int i = -1; i < 2; i++)
             for (int j = -1; j < 2; j++) {
+                //index is not out of border
                 if (i != 0 && j != 0 && to_y + i < 9 && to_x + j < 9 && to_y + i >= 0 && to_x + j >= 0)
                 {
-                    if (board.getTile(to_y + i, to_x + j) == antiplayer)
-                        if (to_x % 2 == 0) {
-                            if (i == -1 && j == -1 ||
-                                i == -1 && j == 1) {
-                            }
-                            else
-                            {
-                                board.changeTile(to_y + i, to_x + j, player);
-                                if (player == 3) {
-                                    machineTiles.push_back(std::make_pair(to_y + i, to_x + j));
-                                }
-                                else {
-                                    std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y + i, to_x + j)); 
-                                }
-                            }
+                    //enemy tile and in 1 ring
+                    if (board.getTile(to_y + i, to_x + j) == antiplayer && is1RingNeighbor(to_y,to_x, to_y + i, to_x + j))
+                        board.changeTile(to_y + i, to_x + j, player);
+                        if (player == 3) {
+                            machineTiles.push_back(std::make_pair(to_y + i, to_x + j));
                         }
-                        else if (to_x % 2 == 1) {
-                            if (i == 1 && j == -1 ||
-                                i == 1 && j == 1){ }
-                            else
-                            {
-                                board.changeTile(to_y + i, to_x + j, player);
-                                if (player == 3) {
-                                    machineTiles.push_back(std::make_pair(to_y + i, to_x + j));
-                                }
-                                else {
-                                    std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y + i, to_x + j));
-                                }
-                            }
+                        else {
+                            std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y + i, to_x + j)); 
                         }
                 }
             }
@@ -220,9 +211,12 @@ void Controller::makeMove(int from_y, int from_x, int to_y, int to_x)
 
 void Controller::Game()
 {
+    
     board_->draw();
     while (board_->getFreeTilesCounter() != 0)
     {
+        if (board_->checkWin() != 0)
+            break;
         auto input = board_->getPlayerInput();
         //auto input = std::make_pair(std::make_pair(6, 8), std::make_pair(5, 7));
         auto from = input.first;

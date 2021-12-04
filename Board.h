@@ -33,6 +33,7 @@ public:
 	void decRedTilesCounterBy(int sub);
 	void incFreeTilesCounterBy(int add);
 	void decFreeTilesCounterBy(int sub);
+	int checkWin();
 	std::pair<std::pair<int, int>, std::pair<int, int>> getPlayerInput();
 	Board(const Board& board);
 };
