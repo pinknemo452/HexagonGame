@@ -88,15 +88,12 @@ void Board::decFreeTilesCounterBy(int sub)
 int Board::checkWin()
 {
 	if (getBlueTilesCounter() == 0) {
-		std::cout << "\nRed win\n";
 		return 3;
 	}
 	if (getRedTilesCounter() == 0) {
-		std::cout << "\nBlue win\n";
 		return 2;
 	}
 	if (getFreeTilesCounter() == 0) {
-		std::cout << "\nDraw\n";
 		return 1;
 	}
 	return 0;

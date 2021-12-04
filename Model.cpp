@@ -130,6 +130,72 @@ int Controller::runMinMax(int recursive_level,int alpha,int beta)
     return Min;
 }
 
+Controller::EvaluationAndMove Controller::minimax(int depth, bool maximazingPlayer)
+{
+    if (depth == 0 || temp->checkWin() != 0)
+        return EvaluationAndMove{ .evaluation = getStaticEvaluation(temp) };
+    std::pair<int, int> bestMove;
+    std::pair<int, int> bestElement;
+    if (maximazingPlayer) {
+        int maxEval = INT_MIN;
+        //for each child
+        for (int k = 0; k < machineTiles.size(); ++k) {
+            for (int i = -2; i < 3; i++)
+                for (int j = -2; j < 3; j++) {
+                    if (i == 0 && j == 0 || (machineTiles[k].first + i > 8 || machineTiles[k].second + j > 8) || (machineTiles[k].first + i < 0 || machineTiles[k].second + j < 0))
+                        continue;
+                    if (canMove(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, temp, 3)) {
+                        
+                        Board* temp_clone = new Board(*temp);
+
+                        temporaryMovement(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, *temp, maximazingPlayer ? 3 : 2);
+                        auto eval = minimax(depth - 1, false);
+
+                        //maxEval 
+                        if (eval.evaluation > maxEval) {
+                            maxEval = eval.evaluation;
+                            bestMove = std::make_pair(machineTiles[k].first + i, machineTiles[k].second + j);
+                            bestElement = std::make_pair(machineTiles[k].first, machineTiles[k].second);
+                        }
+                        delete temp;
+                        temp = new Board(*temp_clone);
+                        delete temp_clone;
+                    }
+
+                }
+        }
+        return { .evaluation = maxEval,.from =  bestElement,.to = bestMove};
+    }
+    else {
+        int minEval = INT_MAX;
+        for (int k = 0; k < machineTiles.size(); ++k) {
+            for (int i = -2; i < 3; i++)
+                for (int j = -2; j < 3; j++) {
+                    if (i == 0 && j == 0 || (machineTiles[k].first + i > 8 || machineTiles[k].second + j > 8) || (machineTiles[k].first + i < 0 || machineTiles[k].second + j < 0))
+                        continue;
+                    if (canMove(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, temp, 3)) {
+
+                        Board* temp_clone = new Board(*temp);
+
+                        temporaryMovement(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, *temp, maximazingPlayer ? 3 : 2);
+                        auto eval = minimax(depth - 1, false);
+
+                        //maxEval 
+                        if (eval.evaluation < minEval) {
+                            minEval = eval.evaluation;
+                            auto bestMove = std::make_pair(machineTiles[k].first + i, machineTiles[k].second + j);
+                            auto bestElement = std::make_pair(machineTiles[k].first, machineTiles[k].second);
+                        }
+                        delete temp;
+                        temp = new Board(*temp_clone);
+                        delete temp_clone;
+                    }
+                }
+        }
+        return { .evaluation = minEval,.from = bestElement,.to = bestMove };;
+    }
+}
+
 int Controller::getStaticEvaluation(Board* board)
 {
     return board->getRedTilesCounter()-board->getBlueTilesCounter();
@@ -215,8 +281,20 @@ void Controller::Game()
     board_->draw();
     while (board_->getFreeTilesCounter() != 0)
     {
-        if (board_->checkWin() != 0)
+        int gameState = board_->checkWin();
+        if (gameState != 0) {
+            if (gameState == 3) {
+                std::cout << "\nRed win\n";
+            }
+            if (gameState == 2) {
+                std::cout << "\nBlue win\n";
+            }
+            if (gameState == 1) {
+                std::cout << "\nDraw\n";
+            }
             break;
+        }
+            
         auto input = board_->getPlayerInput();
         //auto input = std::make_pair(std::make_pair(6, 8), std::make_pair(5, 7));
         auto from = input.first;
@@ -235,7 +313,9 @@ void Controller::Game()
         board_->draw();
         delete temp;
         temp = new Board(*board_);
-        runMinMax(0, 0, 0);
+        auto AIturn = minimax(3, true);
+        temporaryMovement(AIturn.from.first, AIturn.from.second, AIturn.to.first, AIturn.to.second, *board_, 3);
+        
         board_->draw();
     }
 }
