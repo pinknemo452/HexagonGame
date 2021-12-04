@@ -9,6 +9,7 @@ class Controller: public IController
 	Board* temp;
 	const int depth_ = 1;
 	std::vector<std::pair<int, int>> machineTiles;
+	std::vector<std::pair<int, int>> humanTiles;
 	struct EvaluationAndMove
 	{
 		int evaluation;

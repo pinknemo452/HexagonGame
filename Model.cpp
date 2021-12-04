@@ -1,5 +1,6 @@
 #include "Model.h"
 #include <cmath>
+#include <algorithm>
 Controller::Controller(Board* board) {
     board_ = board;
     temp = new Board(*board_);
@@ -138,24 +139,27 @@ Controller::EvaluationAndMove Controller::minimax(int depth, bool maximazingPlay
     std::pair<int, int> bestElement;
     if (maximazingPlayer) {
         int maxEval = INT_MIN;
+        auto machineTilesClone = machineTiles;
         //for each child
-        for (int k = 0; k < machineTiles.size(); ++k) {
+        for (int k = 0; k < machineTilesClone.size(); ++k) {
             for (int i = -2; i < 3; i++)
                 for (int j = -2; j < 3; j++) {
-                    if (i == 0 && j == 0 || (machineTiles[k].first + i > 8 || machineTiles[k].second + j > 8) || (machineTiles[k].first + i < 0 || machineTiles[k].second + j < 0))
+                    if (i == 0 && j == 0 || (machineTilesClone[k].first + i > 8 || machineTilesClone[k].second + j > 8) || (machineTilesClone[k].first + i < 0 || machineTilesClone[k].second + j < 0))
                         continue;
-                    if (canMove(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, temp, 3)) {
+                    if (canMove(machineTilesClone[k].first, machineTilesClone[k].second, machineTilesClone[k].first + i, machineTilesClone[k].second + j, temp, 3)) {
                         
                         Board* temp_clone = new Board(*temp);
 
-                        temporaryMovement(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, *temp, maximazingPlayer ? 3 : 2);
+                        temporaryMovement(machineTilesClone[k].first, machineTilesClone[k].second, machineTilesClone[k].first + i, machineTilesClone[k].second + j, *temp, maximazingPlayer ? 3 : 2);
+                        
+
                         auto eval = minimax(depth - 1, false);
 
                         //maxEval 
                         if (eval.evaluation > maxEval) {
                             maxEval = eval.evaluation;
-                            bestMove = std::make_pair(machineTiles[k].first + i, machineTiles[k].second + j);
-                            bestElement = std::make_pair(machineTiles[k].first, machineTiles[k].second);
+                            bestMove = std::make_pair(machineTilesClone[k].first + i, machineTilesClone[k].second + j);
+                            bestElement = std::make_pair(machineTilesClone[k].first, machineTilesClone[k].second);
                         }
                         delete temp;
                         temp = new Board(*temp_clone);
@@ -168,29 +172,32 @@ Controller::EvaluationAndMove Controller::minimax(int depth, bool maximazingPlay
     }
     else {
         int minEval = INT_MAX;
-        for (int k = 0; k < machineTiles.size(); ++k) {
+        auto humanTilesClone = humanTiles;
+        for (int k = 0; k < humanTilesClone.size(); ++k) {
             for (int i = -2; i < 3; i++)
                 for (int j = -2; j < 3; j++) {
-                    if (i == 0 && j == 0 || (machineTiles[k].first + i > 8 || machineTiles[k].second + j > 8) || (machineTiles[k].first + i < 0 || machineTiles[k].second + j < 0))
+                    if ((humanTilesClone[k].first + i > 8 || humanTilesClone[k].second + j > 8) || (humanTilesClone[k].first + i < 0 || humanTilesClone[k].second + j < 0))
                         continue;
-                    if (canMove(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, temp, 3)) {
+                    if (canMove(humanTilesClone[k].first, humanTilesClone[k].second, humanTilesClone[k].first + i, humanTilesClone[k].second + j, temp, maximazingPlayer ? 3 : 2)) {
 
                         Board* temp_clone = new Board(*temp);
 
-                        temporaryMovement(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, *temp, maximazingPlayer ? 3 : 2);
-                        auto eval = minimax(depth - 1, false);
+                        temporaryMovement(humanTilesClone[k].first, humanTilesClone[k].second, humanTilesClone[k].first + i, humanTilesClone[k].second + j, *temp, maximazingPlayer ? 3 : 2);
+                        
+                        auto eval = minimax(depth - 1, true);
 
                         //maxEval 
                         if (eval.evaluation < minEval) {
                             minEval = eval.evaluation;
-                            auto bestMove = std::make_pair(machineTiles[k].first + i, machineTiles[k].second + j);
-                            auto bestElement = std::make_pair(machineTiles[k].first, machineTiles[k].second);
+                            auto bestMove = std::make_pair(humanTilesClone[k].first + i, humanTilesClone[k].second + j);
+                            auto bestElement = std::make_pair(humanTilesClone[k].first, humanTilesClone[k].second);
                         }
                         delete temp;
                         temp = new Board(*temp_clone);
                         delete temp_clone;
                     }
                 }
+            
         }
         return { .evaluation = minEval,.from = bestElement,.to = bestMove };;
     }
@@ -209,40 +216,59 @@ void Controller::temporaryMovement(int from_y, int from_x, int to_y, int to_x, B
         movement_type = 1;
     if (movement_type == 1) {
         board.changeTile(to_y, to_x, player);
-        for (int i = -1; i < 2; i++)
-            for (int j = -1; j < 2; j++) {
-                //index is not out of border
-                if (i != 0 && j != 0 && to_y + i < 9 && to_x + j < 9 && to_y + i >= 0 && to_x + j >= 0)
-                {
-                    //enemy tile and in 1 ring
-                    if (board.getTile(to_y + i, to_x + j) == antiplayer && is1RingNeighbor(to_y,to_x, to_y + i, to_x + j))
-                        board.changeTile(to_y + i, to_x + j, player);
-                        if (player == 3) {
-                            machineTiles.push_back(std::make_pair(to_y + i, to_x + j));
-                        }
-                        else {
-                            std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y + i, to_x + j)); 
-                        }
+        if (player == 3) {
+            if(std::find(machineTiles.begin(),machineTiles.end(), std::make_pair(to_y,to_x)) == machineTiles.end())
+                machineTiles.push_back(std::make_pair(to_y, to_x));
+        }
+        else {
+            if (std::find(humanTiles.begin(), humanTiles.end(), std::make_pair(to_y, to_x)) == humanTiles.end())
+                humanTiles.push_back(std::make_pair(to_y, to_x));
+        }
+    }
+    else {
+        board.changeTile(to_y, to_x, player);
+        if (player == 3) {
+            if (std::find(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y, to_x)) == machineTiles.end())
+                machineTiles.push_back(std::make_pair(to_y, to_x));
+        }
+        else {
+            if (std::find(humanTiles.begin(), humanTiles.end(), std::make_pair(to_y, to_x)) == humanTiles.end())
+                humanTiles.push_back(std::make_pair(to_y, to_x));
+        }
+        board.changeTile(from_y, from_x, 0);
+        if (player == 3) { 
+            auto ip = std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(from_y, from_x)); 
+            machineTiles.resize(std::distance(machineTiles.begin(), ip));
+        }
+        else { 
+            auto ip = std::remove(humanTiles.begin(), humanTiles.end(), std::make_pair(from_y, from_x));
+            humanTiles.resize(std::distance(humanTiles.begin(), ip));
+        }
+    }
+    for (int i = -1; i < 2; i++)
+        for (int j = -1; j < 2; j++) {
+            //index is not out of border
+            if ((to_y + i < 9 && to_x + j < 9) && (to_y + i >= 0 && to_x + j >= 0))
+            {
+               //enemy tile and in 1 ring
+                if (board.getTile(to_y + i, to_x + j) == antiplayer && is1RingNeighbor(to_y, to_x, to_y + i, to_x + j)) {
+                    board.changeTile(to_y + i, to_x + j, player);
+                    if (player == 3) {
+                        if (std::find(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y, to_x)) == machineTiles.end())
+                            machineTiles.push_back(std::make_pair(to_y, to_x));
+                        auto it = std::remove(humanTiles.begin(), humanTiles.end(), std::make_pair(to_y + i, to_x + j));
+                        humanTiles.resize(std::distance(humanTiles.begin(), it));
+                    }
+                    else {
+                        if (std::find(humanTiles.begin(), humanTiles.end(), std::make_pair(to_y, to_x)) == humanTiles.end())
+                            humanTiles.push_back(std::make_pair(to_y, to_x));
+                        auto it = std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y + i, to_x + j));
+                        machineTiles.resize(std::distance(machineTiles.begin(), it));
+                    }
                 }
             }
-    }
-    if (movement_type == 2)
-    {
-        board.changeTile(to_y, to_x, player);
-        board.changeTile(from_y, from_x, 0);
-        for (int i = -2; i < 3; i++)
-            for (int j = -2; j < 3; j++)
-                if (i != 0 && j != 0 && to_y + i < 9 && to_x +j < 9 && to_y + i >= 0 && to_x + j >= 0)
-                    if (board.getTile(to_y + i, to_x + j) == antiplayer && isNeighbor(to_y, to_x, to_y + i, to_x + j)) {
-                        board.changeTile(to_y + i, to_x + j, player);
-                        if (player == 3) {
-                            machineTiles.push_back(std::make_pair(to_y + i, to_x + j));
-                        }
-                        else {
-                            std::remove(machineTiles.begin(), machineTiles.end(), std::make_pair(to_y + i, to_x + j));
-                        }
-                    }
-    }
+        }
+    
 }
 
 void Controller::makeMove(int from_y, int from_x, int to_y, int to_x)
@@ -315,7 +341,8 @@ void Controller::Game()
         temp = new Board(*board_);
         auto AIturn = minimax(3, true);
         temporaryMovement(AIturn.from.first, AIturn.from.second, AIturn.to.first, AIturn.to.second, *board_, 3);
-        
+        if (AIturn.from == std::make_pair(0, 0) || AIturn.to == std::make_pair(0, 0))
+            throw std::exception("Wrong AI move");
         board_->draw();
     }
 }
@@ -324,9 +351,14 @@ void Controller::setBoard(Board* board)
 {
     board_ = board;
     temp = new Board(*board_);
+
     machineTiles.push_back(std::make_pair(2, 0));
     machineTiles.push_back(std::make_pair(2, 8));
     machineTiles.push_back(std::make_pair(8, 4));
+
+    humanTiles.push_back(std::make_pair(0, 4));
+    humanTiles.push_back(std::make_pair(6, 8));
+    humanTiles.push_back(std::make_pair(6, 0));
 }
 
 Controller::Controller()
