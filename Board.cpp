@@ -146,7 +146,7 @@ std::pair<int,int> parse_input(int i){
 	else if (i >= 6)
 		return std::make_pair(3 - (i - 6) / 2, (i - 6));
 	else {
-		return std::make_pair(2 - i / 2, i - 1);
+		return std::make_pair(2 - (i-1) / 2, i - 1);
 	}
 }
 std::pair<std::pair<int,int>, std::pair<int,int>> Board::getPlayerInput()

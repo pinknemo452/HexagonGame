@@ -131,7 +131,7 @@ int Controller::runMinMax(int recursive_level,int alpha,int beta)
     return Min;
 }
 
-Controller::EvaluationAndMove Controller::minimax(int depth, bool maximazingPlayer)
+Controller::EvaluationAndMove Controller::minimax(int depth,int alpha,int beta ,bool maximazingPlayer)
 {
     if (depth == 0 || temp->checkWin() != 0)
         return EvaluationAndMove{ .evaluation = getStaticEvaluation(temp) };
@@ -141,19 +141,20 @@ Controller::EvaluationAndMove Controller::minimax(int depth, bool maximazingPlay
         int maxEval = INT_MIN;
         auto machineTilesClone = machineTiles;
         //for each child
+        bool exit_flag = false;
         for (int k = 0; k < machineTilesClone.size(); ++k) {
-            for (int i = -2; i < 3; i++)
+            for (int i = -2; i < 3; i++) {
                 for (int j = -2; j < 3; j++) {
                     if (i == 0 && j == 0 || (machineTilesClone[k].first + i > 8 || machineTilesClone[k].second + j > 8) || (machineTilesClone[k].first + i < 0 || machineTilesClone[k].second + j < 0))
                         continue;
                     if (canMove(machineTilesClone[k].first, machineTilesClone[k].second, machineTilesClone[k].first + i, machineTilesClone[k].second + j, temp, 3)) {
-                        
+
                         Board* temp_clone = new Board(*temp);
                         auto machineTilesClone = machineTiles;
                         auto humanTilesClone = humanTiles;
 
                         temporaryMovement(machineTilesClone[k].first, machineTilesClone[k].second, machineTilesClone[k].first + i, machineTilesClone[k].second + j, *temp, maximazingPlayer ? 3 : 2);
-                        auto eval = minimax(depth - 1, false);
+                        auto eval = minimax(depth - 1, alpha, beta, false);
 
                         machineTiles = machineTilesClone;
                         humanTiles = humanTilesClone;
@@ -164,20 +165,32 @@ Controller::EvaluationAndMove Controller::minimax(int depth, bool maximazingPlay
                             bestMove = std::make_pair(machineTilesClone[k].first + i, machineTilesClone[k].second + j);
                             bestElement = std::make_pair(machineTilesClone[k].first, machineTilesClone[k].second);
                         }
+                        alpha = std::max(alpha, eval.evaluation);
+                        if (beta <= alpha) {
+                            exit_flag = true;
+                            break;
+                        }
+
                         delete temp;
                         temp = new Board(*temp_clone);
                         delete temp_clone;
                     }
 
                 }
+                if (exit_flag)
+                    break;
+            }
+            if (exit_flag)
+                break;
         }
         return { .evaluation = maxEval,.from =  bestElement,.to = bestMove};
     }
     else {
         int minEval = INT_MAX;
         auto humanTilesClone = humanTiles;
+        bool exit_flag = false;
         for (int k = 0; k < humanTilesClone.size(); ++k) {
-            for (int i = -2; i < 3; i++)
+            for (int i = -2; i < 3; i++) {
                 for (int j = -2; j < 3; j++) {
                     if ((humanTilesClone[k].first + i > 8 || humanTilesClone[k].second + j > 8) || (humanTilesClone[k].first + i < 0 || humanTilesClone[k].second + j < 0))
                         continue;
@@ -188,23 +201,33 @@ Controller::EvaluationAndMove Controller::minimax(int depth, bool maximazingPlay
                         auto humanTilesClone = humanTiles;
 
                         temporaryMovement(humanTilesClone[k].first, humanTilesClone[k].second, humanTilesClone[k].first + i, humanTilesClone[k].second + j, *temp, maximazingPlayer ? 3 : 2);
-                        auto eval = minimax(depth - 1, true);
+                        auto eval = minimax(depth - 1, alpha, beta, true);
 
                         machineTiles = machineTilesClone;
                         humanTiles = humanTilesClone;
 
-                        //maxEval 
+                        //minEval 
                         if (eval.evaluation < minEval) {
                             minEval = eval.evaluation;
                             auto bestMove = std::make_pair(humanTilesClone[k].first + i, humanTilesClone[k].second + j);
                             auto bestElement = std::make_pair(humanTilesClone[k].first, humanTilesClone[k].second);
                         }
+                        beta = std::min(beta, eval.evaluation);
+                        if (beta <= alpha) {
+                            exit_flag = true;
+                            break;
+                        }
+
                         delete temp;
                         temp = new Board(*temp_clone);
                         delete temp_clone;
                     }
                 }
-            
+                if (exit_flag)
+                    break;
+            }
+            if (exit_flag)
+                break;
         }
         return { .evaluation = minEval,.from = bestElement,.to = bestMove };;
     }
@@ -359,7 +382,7 @@ void Controller::Game()
         }
         delete temp;
         temp = new Board(*board_);
-        auto AIturn = minimax(3, true);
+        auto AIturn = minimax(3,INT_MIN,INT_MAX, true);
         temporaryMovement(AIturn.from.first, AIturn.from.second, AIturn.to.first, AIturn.to.second, *board_, 3);
         if (AIturn.from == std::make_pair(0, 0) || AIturn.to == std::make_pair(0, 0))
             throw std::exception("Wrong AI move");
