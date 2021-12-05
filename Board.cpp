@@ -118,6 +118,8 @@ int Board::checkWin()
 	}
 	return 0;
 }
+
+//TODO: fix parser
 std::pair<int,int> parse_input(int i){
 	if (i >= 57)
 		return std::make_pair(8 - (i - 57) / 2, 4 + (i - 57));
@@ -126,7 +128,7 @@ std::pair<int,int> parse_input(int i){
 	else if (i >= 44)
 		return std::make_pair(7 - (i - 44) / 2, 2 + (i - 44));
 	else if (i >= 36)
-		return std::make_pair(7 - (i - 36) / 2 -((i - 51) % 2), 1 + (i - 36));
+		return std::make_pair(7 - (i - 36) / 2 -((i - 36) % 2), 1 + (i - 36));
 	else if (i >= 27)
 		return std::make_pair(6 - (i - 27) / 2, (i - 27));
 	else if (i >= 19)
@@ -136,7 +138,7 @@ std::pair<int,int> parse_input(int i){
 	else if (i >= 6)
 		return std::make_pair(3 - (i - 6) / 2, (i - 6));
 	else {
-		return std::make_pair(2 - i / 2, i);
+		return std::make_pair(2 - i / 2, i - 1);
 	}
 }
 std::pair<std::pair<int,int>, std::pair<int,int>> Board::getPlayerInput()
