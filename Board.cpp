@@ -118,14 +118,34 @@ int Board::checkWin()
 	}
 	return 0;
 }
-
+std::pair<int,int> parse_input(int i){
+	if (i >= 57)
+		return std::make_pair(8 - (i - 57) / 2, 4 + (i - 57));
+	else if (i >= 51)
+		return std::make_pair(8 - (i - 51) / 2 - ((i - 51) % 2), 3 + (i - 51));
+	else if (i >= 44)
+		return std::make_pair(7 - (i - 44) / 2, 2 + (i - 44));
+	else if (i >= 36)
+		return std::make_pair(7 - (i - 36) / 2 -((i - 51) % 2), 1 + (i - 36));
+	else if (i >= 27)
+		return std::make_pair(6 - (i - 27) / 2, (i - 27));
+	else if (i >= 19)
+		return std::make_pair(5 - (i - 19) / 2, (i - 19));
+	else if (i >= 12)
+		return std::make_pair(4 - (i - 12) / 2, (i - 12));
+	else if (i >= 6)
+		return std::make_pair(3 - (i - 6) / 2, (i - 6));
+	else {
+		return std::make_pair(2 - i / 2, i);
+	}
+}
 std::pair<std::pair<int,int>, std::pair<int,int>> Board::getPlayerInput()
 {
-	std::cout << "Enter you turn(from y x to y x): ";
+	std::cout << "Enter you turn(from  to ): ";
 	int i, j;
-	int y, x;
-	std::cin >> i >> j >> y >> x;
-	return std::make_pair(std::make_pair(i,j),std::make_pair(y,x));
+	
+	std::cin >> i >> j;
+	return std::make_pair(parse_input(i),parse_input(j));
 }
 
 Board::Board(const Board& board):board_(board.board_),blueTilesCounter_(board.blueTilesCounter_),redTilesCounter_(board.redTilesCounter_),freeTilesCounter_(board.freeTilesCounter_)
