@@ -26,6 +26,7 @@ void Board::start()
 {
 	model_->Game();
 }
+
 std::string getString(int value,int number) {
 	std::string str2_0;
 	if (value == 3)
@@ -44,6 +45,7 @@ std::string getString(int value,int number) {
 	}
 	return str2_0;
 }
+
 void Board::draw() const
 {
 		
@@ -149,6 +151,7 @@ std::pair<int,int> parse_input(int i){
 		return std::make_pair(2 - (i-1) / 2, i - 1);
 	}
 }
+
 std::pair<std::pair<int,int>, std::pair<int,int>> Board::getPlayerInput()
 {
 	std::cout << "Enter you turn(from  to ): ";

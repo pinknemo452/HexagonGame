@@ -91,46 +91,6 @@ bool Controller::isNeighbor(int y, int x, int neighbor_y, int neighbor_x) const
     return false;
 }
 
-int Controller::runMinMax(int recursive_level,int alpha,int beta)
-{
-    int evaluation = 100;
-    std::pair<int, int> bestMove(100,100);
-    std::pair<int, int> bestElement(100, 100);
-    int Min = -100;
-    if (recursive_level >= 1)
-        return getStaticEvaluation(temp);
-    for (int k = 0;k < machineTiles.size(); ++k) {
-        for (int i = -2; i < 3; i++)
-            for (int j = -2; j < 3; j++) {
-                if (i == 0 && j == 0 || (machineTiles[k].first + i > 8 || machineTiles[k].second + j > 8) || (machineTiles[k].first + i < 0 || machineTiles[k].second + j < 0))
-                    continue;
-                if (canMove(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, temp, 3)) {
-                    Board* temp_clone = new Board(*temp);
-                    temporaryMovement(machineTiles[k].first, machineTiles[k].second, machineTiles[k].first + i, machineTiles[k].second + j, *temp, 3);
-                    evaluation = runMinMax(recursive_level + 1, 0, 0);
-                    
-                    if (evaluation > Min) {
-                        Min = evaluation;
-                        bestMove = std::make_pair(machineTiles[k].first + i, machineTiles[k].second + j);
-                        bestElement = std::make_pair(machineTiles[k].first,machineTiles[k].second);
-                    }
-                    delete temp;
-                    temp = new Board(*temp_clone);
-                    delete temp_clone;
-                }
-
-            }
-    }
-    if (bestMove == std::make_pair(100, 100))
-        return getStaticEvaluation(temp);
-    if (recursive_level == 0) {
-        machineTiles.push_back(bestMove);
-        temporaryMovement(bestElement.first, bestElement.second, bestMove.first, bestMove.second, *board_, 3);
-        std::cout << bestMove.first << " " << bestMove.second;
-    }
-    return Min;
-}
-
 Controller::EvaluationAndMove Controller::minimax(int depth,int alpha,int beta ,bool maximazingPlayer)
 {
     if (depth == 0 || temp->checkWin() != 0)
@@ -299,36 +259,6 @@ void Controller::temporaryMovement(int from_y, int from_x, int to_y, int to_x, B
             }
         }
     
-}
-
-void Controller::makeMove(int from_y, int from_x, int to_y, int to_x)
-{
-    int movement_type;
-    if (from_x % 2 == 0) {
-        if (to_y - from_y == 0 && to_x - from_x == -1 ||
-            to_y - from_y == -1 && to_x - from_x == 0 ||
-            to_y - from_y == 0 && to_x - from_x == 1 ||
-            to_y - from_y == 1 && to_x - from_x == 1 ||
-            to_y - from_y == 1 && to_x - from_x == 0 ||
-            to_y - from_y == 1 && to_x - from_x == -1)
-            movement_type = 1;
-    }
-    else if (from_x % 2 == 1) {
-        if (to_y - from_y == -1 && to_x - from_x == -1 ||
-            to_y - from_y == -1 && to_x - from_x == 0 ||
-            to_y - from_y == -1 && to_x - from_x == 1 ||
-            to_y - from_y == 0 && to_x - from_x == 1 ||
-            to_y - from_y == 1 && to_x - from_x == 0 ||
-            to_y - from_y == 0 && to_x - from_x == -1)
-            movement_type = 1;
-    }
-    else
-    {
-        movement_type = 2;
-    }
-    if (movement_type == 1) {
-
-    }
 }
 
 void Controller::Game()
