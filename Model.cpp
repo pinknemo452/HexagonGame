@@ -312,7 +312,7 @@ void Controller::Game()
 {
     
     board_->draw();
-    while (board_->getFreeTilesCounter() != 0)
+    while (true)
     {
         int gameState = board_->checkWin();
         if (gameState != 0) {
@@ -344,6 +344,19 @@ void Controller::Game()
             continue;
         }
         board_->draw();
+        gameState = board_->checkWin();
+        if (gameState != 0) {
+            if (gameState == 3) {
+                std::cout << "\nRed win\n";
+            }
+            if (gameState == 2) {
+                std::cout << "\nBlue win\n";
+            }
+            if (gameState == 1) {
+                std::cout << "\nDraw\n";
+            }
+            break;
+        }
         delete temp;
         temp = new Board(*board_);
         auto AIturn = minimax(3, true);

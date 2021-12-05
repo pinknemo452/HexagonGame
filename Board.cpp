@@ -114,12 +114,20 @@ int Board::checkWin()
 		return 2;
 	}
 	if (getFreeTilesCounter() == 0) {
-		return 1;
+		if (getBlueTilesCounter() > getRedTilesCounter()) {
+			return 2;
+		}
+		else if(getRedTilesCounter() > getBlueTilesCounter())
+		{
+			return 3;
+		}
+		else {
+			return 1;
+		}
 	}
 	return 0;
 }
 
-//TODO: fix parser
 std::pair<int,int> parse_input(int i){
 	if (i >= 57)
 		return std::make_pair(8 - (i - 57) / 2, 4 + (i - 57));
