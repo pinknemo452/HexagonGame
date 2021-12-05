@@ -267,22 +267,14 @@ void Controller::Game()
     board_->draw();
     while (true)
     {
-        int gameState = board_->checkWin();
-        if (gameState != 0) {
-            if (gameState == 3) {
-                std::cout << "\nRed win\n";
-            }
-            if (gameState == 2) {
-                std::cout << "\nBlue win\n";
-            }
-            if (gameState == 1) {
-                std::cout << "\nDraw\n";
-            }
+        
+        if (isGameOver())
+            break;
+        if (!isPlayerCanMove()) {
+            std::cout << "\nRed win\n";
             break;
         }
-            
         auto input = board_->getPlayerInput();
-        //auto input = std::make_pair(std::make_pair(6, 8), std::make_pair(5, 7));
         auto from = input.first;
         auto to = input.second;
         int from_y = from.first;
@@ -297,19 +289,8 @@ void Controller::Game()
             continue;
         }
         board_->draw();
-        gameState = board_->checkWin();
-        if (gameState != 0) {
-            if (gameState == 3) {
-                std::cout << "\nRed win\n";
-            }
-            if (gameState == 2) {
-                std::cout << "\nBlue win\n";
-            }
-            if (gameState == 1) {
-                std::cout << "\nDraw\n";
-            }
+        if (isGameOver())
             break;
-        }
         delete temp;
         temp = new Board(*board_);
         auto AIturn = minimax(3,INT_MIN,INT_MAX, true);
@@ -334,6 +315,46 @@ void Controller::setBoard(Board* board)
     humanTiles.push_back(std::make_pair(0, 4));
     humanTiles.push_back(std::make_pair(6, 8));
     humanTiles.push_back(std::make_pair(6, 0));
+}
+
+bool Controller::isPlayerCanMove()
+{
+    bool isCanMove = false;
+    for (int k = 0; k < humanTiles.size(); ++k) {
+        for (int i = -2; i < 3; i++) {
+            for (int j = -2; j < 3; j++) {
+                if ((humanTiles[k].first + i > 8 || humanTiles[k].second + j > 8) || (humanTiles[k].first + i < 0 || humanTiles[k].second + j < 0))
+                    continue;
+                if (canMove(humanTiles[k].first, humanTiles[k].second, humanTiles[k].first + i, humanTiles[k].second + j, temp, 2)) {
+                    isCanMove = true;
+                    break;
+                }
+            }
+            if (isCanMove)
+                break;
+        }
+        if (isCanMove)
+            break;
+    }
+    return isCanMove;
+}
+
+bool Controller::isGameOver()
+{
+    int gameState = board_->checkWin();
+    if (gameState != 0) {
+        if (gameState == 3) {
+            std::cout << "\nRed win\n";
+        }
+        if (gameState == 2) {
+            std::cout << "\nBlue win\n";
+        }
+        if (gameState == 1) {
+            std::cout << "\nDraw\n";
+        }
+        return true;
+    }
+    return false;
 }
 
 Controller::Controller()

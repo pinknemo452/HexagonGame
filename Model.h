@@ -24,6 +24,8 @@ public:
 	void temporaryMovement(int from_y,int from_x,int to_y,int to_x, Board& board, int player);
 	void Game() override;
 	void setBoard(Board* board) override;
+	bool isPlayerCanMove();
+	bool isGameOver();
 	Controller();
 	Controller( Board* board);
 };
