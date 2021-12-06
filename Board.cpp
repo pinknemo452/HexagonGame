@@ -1,5 +1,6 @@
 #include "Board.h"
 #include <string>
+#include <fstream>
 #include <iostream>
 
 
@@ -180,6 +181,27 @@ int Board::getFreeTilesCounter() const
 	return freeTilesCounter_;
 }
 
+void Board::save()
+{
+	std::ofstream ofile("hexxagon.save");
+	for (int i = 0; i < board_.size(); i++) {
+		for (int j = 0; j < board_[i].size(); j++)
+		{
+			ofile << board_[i][j] << " ";
+		}
+		ofile << "\n";
+	}
+}
+
+void Board::load() {
+	std::ifstream ifile("hexxagon.save");
+	for (int i = 0; i < board_.size(); i++) {
+		for (int j = 0; j < board_[i].size(); j++)
+		{
+			ifile >> board_[i][j];
+		}
+	}
+}
 void Board::incBlueTilesCounterBy(int add)
 {
 	blueTilesCounter_ += add;

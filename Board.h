@@ -26,6 +26,8 @@ public:
 	int getBlueTilesCounter() const;
 	int getRedTilesCounter() const;
 	int getFreeTilesCounter() const;
+	void save();
+	void load();
 	void changeTile(int y, int x, int value);
 	void incBlueTilesCounterBy(int add);
 	void decBlueTilesCounterBy(int sub);

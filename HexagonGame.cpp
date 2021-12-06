@@ -10,6 +10,7 @@ int main()
 {
     Controller c;
     Board gam(&c);
+    gam.save();
     gam.start();
     std::cout << "\n" << gam.getBlueTilesCounter();
 }
